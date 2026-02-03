@@ -145,14 +145,23 @@ button{
 
 <script>
 /* ===============================
-   🏃 PSYCHIC NO BUTTON (SAFE)
+   🏃 SMART NO BUTTON
 ================================ */
 const noBtn  = document.getElementById("no");
 const yesBtn = document.getElementById("yes");
 const area   = document.getElementById("area");
 
-const SAFE_DISTANCE = 80;
-const MAX_TRIES = 20;
+const SAFE_DISTANCE_CURSOR = 100; // px
+const SAFE_DISTANCE_TRIGGER = 80;
+const MAX_TRIES = 30;
+
+let mouseX = -999;
+let mouseY = -999;
+
+document.addEventListener("mousemove", e=>{
+  mouseX = e.clientX;
+  mouseY = e.clientY;
+});
 
 function intersects(r1, r2){
   return !(
@@ -161,6 +170,12 @@ function intersects(r1, r2){
     r1.bottom < r2.top ||
     r1.top > r2.bottom
   );
+}
+
+function farFromCursor(x, y, rect){
+  const cx = x + rect.width / 2;
+  const cy = y + rect.height / 2;
+  return Math.hypot(cx - mouseX, cy - mouseY) > SAFE_DISTANCE_CURSOR;
 }
 
 function moveNo(){
@@ -172,6 +187,8 @@ function moveNo(){
     const x = Math.random() * (areaRect.width - noRect.width);
     const y = Math.random() * (areaRect.height - noRect.height);
 
+    if(!farFromCursor(x + areaRect.left, y + areaRect.top, noRect)) continue;
+
     noBtn.style.left = x + "px";
     noBtn.style.top  = y + "px";
 
@@ -180,13 +197,13 @@ function moveNo(){
   }
 }
 
-/* Run BEFORE cursor reaches */
+/* Trigger escape BEFORE reach */
 document.addEventListener("mousemove", e=>{
   const r = noBtn.getBoundingClientRect();
   const cx = r.left + r.width/2;
   const cy = r.top  + r.height/2;
-  const d  = Math.hypot(e.clientX-cx, e.clientY-cy);
-  if(d < SAFE_DISTANCE) moveNo();
+  const d  = Math.hypot(e.clientX - cx, e.clientY - cy);
+  if(d < SAFE_DISTANCE_TRIGGER) moveNo();
 });
 
 area.addEventListener("touchstart", moveNo);
